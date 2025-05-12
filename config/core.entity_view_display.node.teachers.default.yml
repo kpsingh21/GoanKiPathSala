@@ -1,0 +1,28 @@
+uuid: 4406acbc-5fdc-4f0d-8ff1-d4665d189cde
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.teachers.field_name
+    - node.type.teachers
+  module:
+    - user
+id: node.teachers.default
+targetEntityType: node
+bundle: teachers
+mode: default
+content:
+  field_name:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }
