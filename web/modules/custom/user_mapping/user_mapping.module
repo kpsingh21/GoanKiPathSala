@@ -1,0 +1,109 @@
+<?php
+
+use Drupal\node\NodeInterface;
+use Drupal\user\Entity\User;
+use Drupal\Component\Utility\Random;
+use Drupal\Core\Mail\MailManagerInterface;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function user_mapping_entity_insert(\Drupal\Core\Entity\EntityInterface $entity) {
+
+  // Only for Student content type.
+  if ($entity->getEntityTypeId() !== 'node' || $entity->bundle() !== 'student') {
+    return;
+  }
+
+  // Get email from node field.
+  if ($entity->get('field_email')->isEmpty()) {
+    return;
+  }
+
+  $email = $entity->get('field_email')->value;
+
+  // Check if user already exists.
+//   $existing = user_load_by_mail($email);
+//   if ($existing) {
+//     return;
+//   }
+
+  // Generate random password.
+  $random = new Random();
+  $password = $random->string(12);
+
+//   dd($email,$password);
+
+  // Create user.
+  $user = User::create([
+    'name' => $email,
+    'mail' => $email,
+    'pass' => $password,
+    'status' => 1,
+  ]);
+
+  $user->addRole('student');
+  $user->save();
+
+//   // Save user reference on node (recommended).
+//   if ($entity->hasField('field_user')) {
+//     $entity->set('field_user', $user->id());
+//     $entity->save();
+//   }
+
+  // Send email.
+//   _student_user_sync_send_mail($email, $password);
+}
+
+
+use Drupal\node\Entity\Node;
+
+/**
+ * Implements hook_entity_presave().
+ */
+function user_mapping_entity_presave(\Drupal\Core\Entity\EntityInterface $entity) {
+
+
+  // Only for student content type
+  if ($entity->getEntityTypeId() === 'node' && $entity->bundle() === 'student') {
+
+    // Only generate if empty (important)
+    if ($entity->isNew() && $entity->get('field_student_uid')->isEmpty()) {
+
+      // Example values
+      $college_code = 'GKPCE';
+      $year = date('Y');
+
+      // Example: get class from field
+      $class = $entity->get('field_class')->value ?? 'GEN';
+
+      // Get next incremental number
+      $connection = \Drupal::database();
+      $query = $connection->select('node__field_student_uid', 's')
+        ->fields('s', ['field_student_uid_value'])
+        ->condition('bundle', 'student')
+        ->orderBy('entity_id', 'DESC')
+        ->range(0, 1);
+
+      $last_id = $query->execute()->fetchField();
+
+      // dd($last_id);
+      $increment = 1;
+
+      if ($last_id) {
+        preg_match('/(\d+)$/', $last_id, $matches);
+        if (!empty($matches[1])) {
+          $increment = (int) $matches[1] + 1;
+        }
+      }
+
+      $unique_number = str_pad($increment, 3, '0', STR_PAD_LEFT);
+
+      $student_id = $college_code . $year . $class . 'ADM' . $unique_number;
+
+      // dd($student_id);
+      // Set field value
+      $entity->set('field_student_uid', $student_id);
+    }
+  }
+}

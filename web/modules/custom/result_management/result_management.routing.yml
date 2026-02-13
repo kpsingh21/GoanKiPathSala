@@ -1,0 +1,7 @@
+result_management.add_result:
+  path: '/add-result'
+  defaults:
+    _form: '\Drupal\result_management\Form\AddResultForm'
+    _title: 'Add New Result'
+  requirements:
+    _permission: 'access content'

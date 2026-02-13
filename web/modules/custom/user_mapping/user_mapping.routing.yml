@@ -1,0 +1,7 @@
+user_mapping.dashboard_info:
+  path: '/dashboard'
+  defaults:
+    _controller: '\Drupal\user_mapping\Controller\DashboardInfo::info'
+    _title: 'info'
+  requirements:
+    _permission: 'access content'
